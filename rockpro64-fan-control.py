@@ -10,7 +10,7 @@
 import os
 
 filepath_temperature0="/sys/devices/virtual/thermal/thermal_zone0/temp"
-filepath_temperature1="/sys/devices/virtual/thermal/thermal_zone0/temp"
+filepath_temperature1="/sys/devices/virtual/thermal/thermal_zone1/temp"
 
 filepath_fan_speed="/sys/class/hwmon/hwmon0/pwm1"
 fan_speed_min = 0
