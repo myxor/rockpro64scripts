@@ -25,18 +25,20 @@ threshold4 = 50
 
 # value in percentage of maximum fan speed
 def getFanSpeedPercentage(temperature):
-    if (temperature > 0 and temperature < threshold0):
-        return 10
+    if (temperature < 0): # huh? what happened here?
+        return 0
+    elif (temperature >= 0 and temperature < threshold0):
+        return 5
     elif (temperature >= threshold0 and temperature < threshold1):
-        return 30
+        return 20
     elif (temperature >= threshold1 and temperature < threshold2):
-        return 50
+        return 40
     elif (temperature >= threshold2 and temperature < threshold3):
-        return 70
+        return 60
     elif (temperature >= threshold3 and temperature < threshold4):
-        return 100
+        return 80
     else:
-        return 10 # fallback
+        return 100 # fallback
 
 
 # start
@@ -50,13 +52,13 @@ if os.path.exists(filepath_temperature0):
                 temperature1 = float(file_temperature1.read()) / 1000
                 file_temperature1.close()
 
-                print("temperatures: %f°C, %f°C" % (temperature0, temperature1))
+                print("temperatures: %0.2f°C, %0.2f°C" % (temperature0, temperature1))
 
                 if os.path.exists(filepath_fan_speed):
                     with open(filepath_fan_speed) as file_fan_speed:
                         fan_speed = int(file_fan_speed.read())
                         fan_speed_percentage = int(float(fan_speed / fan_speed_max) * 100)
-                        print("fan speed: %s (raw: %d)" % (str(fan_speed_percentage) + "%", fan_speed))
+                        print("current fan speed: %s (raw: %d)" % (str(fan_speed_percentage) + "%", fan_speed))
                         file_fan_speed.close()
 
                         desired_fan_speed0 = getFanSpeedPercentage(temperature0)
@@ -64,7 +66,7 @@ if os.path.exists(filepath_temperature0):
                         desired_fan_speed = max(desired_fan_speed0, desired_fan_speed1)
                         desired_fan_speed_raw = int(float(desired_fan_speed / 100) * fan_speed_max)
 
-                        print("desired fan speeds: %s, %s ==> %s raw value: %d" % (str(desired_fan_speed0) + "%", str(desired_fan_speed1) + "%", str(desired_fan_speed) + "%", desired_fan_speed_raw))
+                        print("desired fan speeds: (%s, %s) ==> %s (raw: %d)" % (str(desired_fan_speed0) + "%", str(desired_fan_speed1) + "%", str(desired_fan_speed) + "%", desired_fan_speed_raw))
 
                         with open(filepath_fan_speed, 'w') as file_fan_speed:
                             file_fan_speed.write(str(desired_fan_speed_raw))
