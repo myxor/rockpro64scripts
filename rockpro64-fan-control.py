@@ -28,13 +28,13 @@ def getFanSpeedPercentage(temperature):
     if (temperature < 0): # huh? what happened here?
         return 0
     elif (temperature >= 0 and temperature < threshold0):
-        return 5
+        return 10
     elif (temperature >= threshold0 and temperature < threshold1):
-        return 20
+        return 25
     elif (temperature >= threshold1 and temperature < threshold2):
-        return 40
+        return 50
     elif (temperature >= threshold2 and temperature < threshold3):
-        return 60
+        return 65
     elif (temperature >= threshold3 and temperature < threshold4):
         return 80
     else:
