@@ -37,8 +37,8 @@ except KeyError as e:
     print("Error: Required field in config.ini missing: " + str(e))
     exit()
 
-filepath_temperature0="/sys/devices/virtual/thermal/thermal_zone0/temp"
-filepath_temperature1="/sys/devices/virtual/thermal/thermal_zone1/temp"
+filepath_temperature_soc="/sys/devices/virtual/thermal/thermal_zone0/temp"
+filepath_temperature_gpu="/sys/devices/virtual/thermal/thermal_zone1/temp"
 
 filepath_fan_speed="/sys/class/hwmon/hwmon0/pwm1"
 fan_speed_min = 0
@@ -78,20 +78,20 @@ def sendViaMQTT(topic, value):
     mqtt_client.publish(topic, value)
 
 # start
-if os.path.exists(filepath_temperature0):
-    with open(filepath_temperature0) as file_temperature0:
-        temperature0 = float(file_temperature0.read()) / 1000
-        file_temperature0.close()
+if os.path.exists(filepath_temperature_soc):
+    with open(filepath_temperature_soc) as file_temperature_soc:
+        temperature_soc = float(file_temperature_soc.read()) / 1000
+        file_temperature_soc.close()
 
-        if os.path.exists(filepath_temperature1):
-            with open(filepath_temperature1) as file_temperature1:
-                temperature1 = float(file_temperature1.read()) / 1000
-                file_temperature1.close()
+        if os.path.exists(filepath_temperature_gpu):
+            with open(filepath_temperature_gpu) as file_temperature_gpu:
+                temperature_gpu = float(file_temperature_gpu.read()) / 1000
+                file_temperature_gpu.close()
 
-                sendViaMQTT(mqtt_topic + "/temperature/0", temperature0)
-                sendViaMQTT(mqtt_topic + "/temperature/1", temperature1)
+                sendViaMQTT(mqtt_topic + "/temperature/soc", temperature_soc)
+                sendViaMQTT(mqtt_topic + "/temperature/gpu", temperature_gpu)
 
-                print("temperatures: %0.2f°C, %0.2f°C" % (temperature0, temperature1))
+                print("temperatures: soc=%0.2f°C, gpu=%0.2f°C" % (temperature_soc, temperature_gpu))
 
                 if os.path.exists(filepath_fan_speed):
                     with open(filepath_fan_speed) as file_fan_speed:
@@ -101,8 +101,8 @@ if os.path.exists(filepath_temperature0):
 
                         file_fan_speed.close()
 
-                        desired_fan_speed0 = getFanSpeedPercentage(temperature0)
-                        desired_fan_speed1 = getFanSpeedPercentage(temperature1)
+                        desired_fan_speed0 = getFanSpeedPercentage(temperature_soc)
+                        desired_fan_speed1 = getFanSpeedPercentage(temperature_gpu)
                         desired_fan_speed = max(desired_fan_speed0, desired_fan_speed1)
                         desired_fan_speed_raw = int(float(desired_fan_speed / 100) * fan_speed_max)
 
