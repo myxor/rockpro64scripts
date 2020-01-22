@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 #   @date 2020-01-22
 #   @author Marco H (myxor)
@@ -91,7 +92,7 @@ if os.path.exists(filepath_temperature_soc):
                 sendViaMQTT(mqtt_topic + "/temperature/soc", temperature_soc)
                 sendViaMQTT(mqtt_topic + "/temperature/gpu", temperature_gpu)
 
-                print("temperatures: soc=%0.2f°C, gpu=%0.2f°C" % (temperature_soc, temperature_gpu))
+                print("temperatures: soc=%0.2f \xb0, gpu=%0.2f \xb0".encode('utf-8') % (temperature_soc, temperature_gpu))
 
                 if os.path.exists(filepath_fan_speed):
                     with open(filepath_fan_speed) as file_fan_speed:
