@@ -74,7 +74,7 @@ def getFanSpeedPercentage(temperature):
         return 100 # fallback
 
 def sendViaMQTT(topic, value):
-    time.sleep(1)
+    time.sleep(0.5)
     mqtt_client.publish(topic, value)
 
 # start
@@ -114,3 +114,5 @@ if os.path.exists(filepath_temperature_soc):
                         with open(filepath_fan_speed, 'w') as file_fan_speed:
                             file_fan_speed.write(str(desired_fan_speed_raw))
                             file_fan_speed.close()
+                else:
+                    print("fan control not supported.")
