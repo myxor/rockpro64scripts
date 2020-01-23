@@ -11,6 +11,7 @@
 #
 import os
 import configparser
+import sched, time
 
 # file paths:
 filepath_temperature_soc="/sys/devices/virtual/thermal/thermal_zone0/temp"
@@ -27,6 +28,8 @@ threshold1 = 35
 threshold2 = 40
 threshold3 = 45
 threshold4 = 50
+
+s = sched.scheduler(time.time, time.sleep)
 
 # fan speed percentage of maximum fan speed
 def getFanSpeedPercentage(temperature):
@@ -91,13 +94,19 @@ def getTemperatures():
                                 file_fan_speed.close()
                     else:
                         print("Fan control not supported. Exiting.")
+                        exit(1)
     else:
         print("SoC thermal sensor not found. Exiting.")
+        exit(1)
+    if interval > 0:
+        s.enter(interval, 1, getTemperatures)
 
 if __name__ == "__main__":
     # read config:
     config = configparser.ConfigParser()
     config.read('config.ini')
+
+    interval = 3
 
     mqtt = False
     mqtt_host = ""
@@ -105,6 +114,7 @@ if __name__ == "__main__":
     mqtt_topic = ""
 
     try:
+        interval = int(config['RUN']['INTERVAL'])
         mqtt = config['MQTT']
         if mqtt:
             mqtt_host = config['MQTT']['HOST']
@@ -112,7 +122,6 @@ if __name__ == "__main__":
             mqtt_topic = config['MQTT']['TOPIC']
             mqtt_client_id = config['MQTT']['CLIENT_ID']
             import paho.mqtt.client as mqtt
-            import time
             def on_connect(client, userdata, flags, rc):
                 print("Connected with result code " + str(rc))
 
@@ -123,4 +132,5 @@ if __name__ == "__main__":
         print("Error: Required field in config.ini missing: " + str(e))
         exit()
 
-    getTemperatures()
+    s.enter(0, 1, getTemperatures)
+    s.run()
