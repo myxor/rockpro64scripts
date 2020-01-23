@@ -50,29 +50,52 @@ def getFanSpeedPercentage(temperature):
 
 def sendViaMQTT(topic, value):
     time.sleep(0.5)
+    print("Sending value %s via MQTT into topic '%s'..." % (value, topic))
     mqtt_client.publish(topic, value)
 
+prev_temperature_soc = -99
+prev_temperature_gpu = -99
+prev_fan_speed = -99
+prev_fan_speed_raw = -99
+
+# Lets only send value by MQTT if current value has enough difference to previous value
+def isEnoughPercentageDifference(prev_value, current_value):
+    if prev_value == -99:
+        return True
+    percentage_threshold = 3
+    v = abs(((prev_value / current_value) - 1) * 100)
+    return v >= percentage_threshold
+
 def getTemperatures():
+    global prev_temperature_soc, prev_temperature_gpu, prev_fan_speed, prev_fan_speed_raw
     if os.path.exists(filepath_temperature_soc):
         with open(filepath_temperature_soc) as file_temperature_soc:
             temperature_soc = float(file_temperature_soc.read()) / 1000
             file_temperature_soc.close()
+
+            print("Temperatures: SoC=%0.2f" % temperature_soc)
+
+            if isEnoughPercentageDifference(prev_temperature_soc, temperature_soc):
+                sendViaMQTT(mqtt_topic + "/temperature/soc", temperature_soc)
+            prev_temperature_soc = temperature_soc
 
             if os.path.exists(filepath_temperature_gpu):
                 with open(filepath_temperature_gpu) as file_temperature_gpu:
                     temperature_gpu = float(file_temperature_gpu.read()) / 1000
                     file_temperature_gpu.close()
 
-                    sendViaMQTT(mqtt_topic + "/temperature/soc", temperature_soc)
-                    sendViaMQTT(mqtt_topic + "/temperature/gpu", temperature_gpu)
+                    print("Temperatures: GPU=%0.2f" % temperature_gpu)
 
-                    print("temperatures: SoC=%0.2f C, GPU=%0.2f C" % (temperature_soc, temperature_gpu))
+                    if isEnoughPercentageDifference(prev_temperature_gpu, temperature_gpu):
+                        sendViaMQTT(mqtt_topic + "/temperature/gpu", temperature_gpu)
+
+                    prev_temperature_gpu = temperature_gpu
 
                     if os.path.exists(filepath_fan_speed):
                         with open(filepath_fan_speed) as file_fan_speed:
                             fan_speed = int(file_fan_speed.read())
                             fan_speed_percentage = int(float(fan_speed / fan_speed_max) * 100)
-                            print("current fan speed: %s (raw: %d)" % (str(fan_speed_percentage) + "%", fan_speed))
+                            print("Current fan speed: %s (raw: %d)" % (str(fan_speed_percentage) + "%", fan_speed))
 
                             file_fan_speed.close()
 
@@ -84,10 +107,15 @@ def getTemperatures():
                             desired_fan_speed_raw = max(fan_speed_min, desired_fan_speed_raw)
                             desired_fan_speed_raw = min(fan_speed_max, desired_fan_speed_raw)
 
-                            print("desired fan speeds: (%s, %s) ==> %s (raw: %d)" % (str(desired_fan_speed0) + "%", str(desired_fan_speed1) + "%", str(desired_fan_speed) + "%", desired_fan_speed_raw))
+                            print("Setting fan speed to: %s (raw: %d)" % (str(desired_fan_speed) + "%", desired_fan_speed_raw))
 
-                            sendViaMQTT(mqtt_topic + "/speed/raw", desired_fan_speed_raw)
-                            sendViaMQTT(mqtt_topic + "/speed/percentage", desired_fan_speed)
+                            if isEnoughPercentageDifference(prev_fan_speed_raw, desired_fan_speed_raw):
+                                sendViaMQTT(mqtt_topic + "/speed/raw", desired_fan_speed_raw)
+                            prev_fan_speed_raw = desired_fan_speed_raw
+
+                            if isEnoughPercentageDifference(prev_fan_speed, desired_fan_speed):
+                                sendViaMQTT(mqtt_topic + "/speed/percentage", desired_fan_speed)
+                            prev_fan_speed = desired_fan_speed
 
                             with open(filepath_fan_speed, 'w') as file_fan_speed:
                                 file_fan_speed.write(str(desired_fan_speed_raw))
@@ -100,13 +128,14 @@ def getTemperatures():
         exit(1)
     if interval > 0:
         s.enter(interval, 1, getTemperatures)
+        print("Sleeping for %d seconds" % interval)
 
 if __name__ == "__main__":
     # read config:
     config = configparser.ConfigParser()
     config.read('config.ini')
 
-    interval = 3
+    interval = 60
 
     mqtt = False
     mqtt_host = ""
