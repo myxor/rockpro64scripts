@@ -29,6 +29,9 @@ threshold2 = 40
 threshold3 = 45
 threshold4 = 50
 
+# -------------------------------------------
+# end of configuration
+
 s = sched.scheduler(time.time, time.sleep)
 
 # fan speed percentage of maximum fan speed
@@ -58,13 +61,14 @@ prev_temperature_gpu = -99
 prev_fan_speed = -99
 prev_fan_speed_raw = -99
 
+
 # Lets only send value by MQTT if current value has enough difference to previous value
 def isEnoughPercentageDifference(prev_value, current_value):
+    global mqtt_update_threshold
     if prev_value == -99:
         return True
-    percentage_threshold = 3
     v = abs(((prev_value / current_value) - 1) * 100)
-    return v >= percentage_threshold
+    return v >= mqtt_update_threshold
 
 def getTemperatures():
     global prev_temperature_soc, prev_temperature_gpu, prev_fan_speed, prev_fan_speed_raw
@@ -141,6 +145,7 @@ if __name__ == "__main__":
     mqtt_host = ""
     mqtt_port = ""
     mqtt_topic = ""
+    mqtt_update_threshold = 1
 
     try:
         interval = int(config['RUN']['INTERVAL'])
@@ -150,6 +155,7 @@ if __name__ == "__main__":
             mqtt_port = int(config['MQTT']['PORT'])
             mqtt_topic = config['MQTT']['TOPIC']
             mqtt_client_id = config['MQTT']['CLIENT_ID']
+            mqtt_update_threshold = config['MQTT']['UPDATE_THRESHOLD']
             import paho.mqtt.client as mqtt
             def on_connect(client, userdata, flags, rc):
                 print("Connected with result code " + str(rc))
