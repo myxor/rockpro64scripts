@@ -155,7 +155,7 @@ if __name__ == "__main__":
             mqtt_port = int(config['MQTT']['PORT'])
             mqtt_topic = config['MQTT']['TOPIC']
             mqtt_client_id = config['MQTT']['CLIENT_ID']
-            mqtt_update_threshold = config['MQTT']['UPDATE_THRESHOLD']
+            mqtt_update_threshold = float(config['MQTT']['UPDATE_THRESHOLD'])
             import paho.mqtt.client as mqtt
             def on_connect(client, userdata, flags, rc):
                 print("Connected with result code " + str(rc))
