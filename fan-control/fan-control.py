@@ -54,7 +54,7 @@ def getFanSpeedPercentage(temperature):
 def sendViaMQTT(topic, value):
     time.sleep(0.5)
     print("Sending value %s via MQTT into topic '%s'..." % (value, topic))
-    mqtt_client.publish(topic, value)
+    mqtt_client.publish(topic, value, qos=0, retain=True)
 
 prev_temperature_soc = -99
 prev_temperature_gpu = -99
