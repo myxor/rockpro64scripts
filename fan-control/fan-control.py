@@ -24,10 +24,15 @@ fan_speed_max = 255
 
 # configure thresholds in °C:
 threshold0 = 30
-threshold1 = 35
-threshold2 = 40
-threshold3 = 45
-threshold4 = 50
+threshold1 = 33
+threshold2 = 36
+threshold3 = 39
+threshold4 = 42
+threshold5 = 45
+threshold6 = 48
+threshold7 = 51
+threshold8 = 54
+threshold9 = 57
 
 # -------------------------------------------
 # end of configuration
@@ -41,13 +46,23 @@ def getFanSpeedPercentage(temperature):
     elif (temperature >= 0 and temperature < threshold0):
         return 10
     elif (temperature >= threshold0 and temperature < threshold1):
-        return 25
+        return 20
     elif (temperature >= threshold1 and temperature < threshold2):
-        return 50
+        return 30
     elif (temperature >= threshold2 and temperature < threshold3):
-        return 65
+        return 40
     elif (temperature >= threshold3 and temperature < threshold4):
+        return 50
+    elif (temperature >= threshold4 and temperature < threshold5):
+        return 60
+    elif (temperature >= threshold5 and temperature < threshold6):
+        return 70
+    elif (temperature >= threshold6 and temperature < threshold7):
         return 80
+    elif (temperature >= threshold7 and temperature < threshold8):
+        return 90
+    elif (temperature >= threshold8 and temperature < threshold9):
+        return 95
     else:
         return 100
 
