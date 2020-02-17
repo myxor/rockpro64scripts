@@ -175,8 +175,12 @@ if __name__ == "__main__":
             def on_connect(client, userdata, flags, rc):
                 print("Connected with result code " + str(rc))
 
+            def on_publish(client, userdata, mid):
+                print("Message published.")
+
             mqtt_client = mqtt.Client(client_id=mqtt_client_id)
             mqtt_client.on_connect = on_connect
+            mqtt_client.on_publish = on_publish
             mqtt_client.connect(mqtt_host, mqtt_port, 60)
     except KeyError as e:
         print("Error: Required field in config.ini missing: " + str(e))
